@@ -1,6 +1,7 @@
 'use strict';
 const argon2 = require('argon2');
 const bcrypt = require('bcrypt');
+const fs = require('fs-extra');
 const Datastore = require('nedb');
 
 const config = require('../../config');
@@ -67,7 +68,14 @@ class Users {
   }
 
   createUser(credentials, callback) {
-    const {password, username} = credentials;
+    const {
+      password,
+      username,
+      host,
+      port,
+      socketPath,
+      isAdmin
+    } = credentials;
 
     if (!this.ready) {
       return callback(null, 'Users database is not ready.');
@@ -77,10 +85,12 @@ class Users {
       return callback(null, 'Username cannot be empty.');
     }
 
+    const socket = 0 < socketPath.trim().length;
+
     argon2
       .hash(password)
       .then(hash => {
-        this.db.insert({ username, password: hash }, (error, user) => {
+        this.db.insert({ username, password: hash, host, port, socket, socketPath, isAdmin }, (error, user) => {
           if (error) {
             if (error.errorType === 'uniqueViolated') {
               error = 'Username already exists.';
@@ -96,12 +106,25 @@ class Users {
   }
 
   removeUser(username, callback) {
-    this.db.remove({username: username}, {}, (err, numRemoved) => {
+    this.db.findOne({username: username}).exec((err, user) => {
       if (err) {
         return callback(null, err);
       }
 
-      return callback({username: username});
+      // Username not found.
+      if (user == null) {
+        return callback(null, user);
+      }
+
+      this.db.remove({username: username}, {}, (err, numRemoved) => {
+        if (err) {
+          return callback(null, err);
+        }
+
+        fs.removeSync(`${config.dbPath}${user._id}/`);
+
+        return callback({username: username});
+      });
     });
   }
 
@@ -129,6 +152,16 @@ class Users {
 
   lookupUser(credentials, callback) {
     this.db.findOne({username: credentials.username}, (err, user) => {
+      if (err) {
+        return callback(err);
+      }
+
+      return callback(null, user);
+    });
+  }
+
+  fetchById(userId, callback) {
+    this.db.findOne({_id: userId}, (err, user) => {
       if (err) {
         return callback(err);
       }
