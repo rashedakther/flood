@@ -35,29 +35,29 @@ const proxyByUserMethodCall = (userId, methodName, parameters) => {
 
         return resolve(response);
       });
-    }
-
-    Users.fetchById(userId, function(error, user) {
-      if (error || !user) {
-        return reject(error);
-      }
-
-      rTorrentUserData.addrTorrentData(userId,
-        {
-          socket: user.socket,
-          socketPath: user.socketPath,
-          port: user.port,
-          host: user.host
-        });
-
-      sendMethodCall(user, methodName, parameters, function(response, error) {
-        if (!response || error) {
+    } else {
+      Users.fetchById(userId, function(error, user) {
+        if (error || !user) {
           return reject(error);
         }
 
-        return resolve(response);
+        rTorrentUserData.addrTorrentData(userId,
+          {
+            socket: user.socket,
+            socketPath: user.socketPath,
+            port: user.port,
+            host: user.host
+          });
+
+        sendMethodCall(user, methodName, parameters, function(response, error) {
+          if (!response || error) {
+            return reject(error);
+          }
+
+          return resolve(response);
+        });
       });
-    });
+    }
   });
 };
 
