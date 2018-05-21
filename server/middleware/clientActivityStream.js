@@ -1,11 +1,11 @@
 'use strict';
 
-const ServicesHandler = require('../services/servicesHandler');
 const historyServiceEvents = require('../constants/historyServiceEvents');
 const historySnapshotTypes = require('../../shared/constants/historySnapshotTypes');
 const notificationServiceEvents = require('../constants/notificationServiceEvents');
 const ServerEvent = require('../models/ServerEvent');
 const serverEventTypes = require('../../shared/constants/serverEventTypes');
+const servicesHandler = require('../services/servicesHandler');
 const taxonomyServiceEvents = require('../constants/taxonomyServiceEvents');
 const torrentServiceEvents = require('../constants/torrentServiceEvents');
 
@@ -14,10 +14,10 @@ module.exports = (req, res) => {
 
   const {query: {historySnapshot = historySnapshotTypes.FIVE_MINUTE}} = req;
 
-  const historyService = ServicesHandler.getHistoryService(userId);
-  const notificationService = ServicesHandler.getNotificationService(userId);
-  const taxonomyService = ServicesHandler.getTaxonomyService(userId);
-  const torrentService = ServicesHandler.getTorrentService(userId);
+  const historyService = servicesHandler.getHistoryService(userId);
+  const notificationService = servicesHandler.getNotificationService(userId);
+  const taxonomyService = servicesHandler.getTaxonomyService(userId);
+  const torrentService = servicesHandler.getTorrentService(userId);
 
   torrentService.setEnableDefer(true);
   torrentService.fetchTorrentList();

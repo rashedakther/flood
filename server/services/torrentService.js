@@ -107,6 +107,10 @@ class TorrentService extends EventEmitter {
     this.pollTimeout = setTimeout(this.fetchTorrentList.bind(this), interval);
   }
 
+  destroy() {
+    clearTimeout(this.pollTimeout);
+  }
+
   setEnableDefer(flag) {
     this.enableDefer = flag;
   }

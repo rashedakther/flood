@@ -8,7 +8,6 @@ const clientRequestServiceEvents = require('../constants/clientRequestServiceEve
 const fileListPropMap = require('../constants/fileListPropMap');
 const methodCallUtil = require('../util/methodCallUtil');
 const scgi = require('../util/scgi');
-const torrentListPropMap = require('../constants/torrentListPropMap');
 
 const fileListMethodCallConfig = methodCallUtil.getMethodCallConfigFromPropMap(
   fileListPropMap,

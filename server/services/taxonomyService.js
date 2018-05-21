@@ -40,6 +40,23 @@ class TaxonomyService extends EventEmitter {
     );
   }
 
+  destroy() {
+    clientRequestService.removeListener(
+      clientRequestServiceEvents.PROCESS_TORRENT_LIST_START,
+      this.handleProcessTorrentListStart
+    );
+
+    clientRequestService.removeListener(
+      clientRequestServiceEvents.PROCESS_TORRENT_LIST_END,
+      this.handleProcessTorrentListEnd
+    );
+
+    clientRequestService.removeListener(
+      clientRequestServiceEvents.PROCESS_TORRENT,
+      this.handleProcessTorrent
+    );
+  }
+
   getTaxonomy() {
     return {
       id: Date.now(),

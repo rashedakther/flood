@@ -74,7 +74,7 @@ class Users {
   }
 
   removeUser(username, callback) {
-    this.db.findOne({username: username}).exec((err, user) => {
+    this.db.findOne({username}).exec((err, user) => {
       if (err) {
         return callback(null, err);
       }
@@ -84,14 +84,14 @@ class Users {
         return callback(null, user);
       }
 
-      this.db.remove({username: username}, {}, (err, numRemoved) => {
+      this.db.remove({username}, {}, (err, numRemoved) => {
         if (err) {
           return callback(null, err);
         }
 
         fs.removeSync(`${config.dbPath}${user._id}/`);
 
-        return callback({username: username});
+        return callback({username});
       });
     });
   }
