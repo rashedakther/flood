@@ -55,6 +55,7 @@ router.post('/torrent-details', function(req, res, next) {
 });
 
 router.get('/torrents', function(req, res, next) {
+  console.log(req.user);
   client.getTorrentList(ajaxUtil.getResponseFn(res));
 });
 

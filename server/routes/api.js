@@ -10,7 +10,7 @@ const clientRoutes = require('./client');
 const clientActivityStream = require('../middleware/clientActivityStream');
 const eventStream = require('../middleware/eventStream');
 const feedService = require('../services/feedService');
-const ServicesHandler = require('../services/servicesHandler');
+const services = require('../services');
 const Filesystem = require('../models/Filesystem');
 const mediainfo = require('../util/mediainfo');
 const settings = require('../models/settings');
@@ -54,7 +54,7 @@ router.get('/directory-list', (req, res, next) => {
 });
 
 router.get('/history', (req, res, next) => {
-  const historyService = ServicesHandler.getHistoryService(req.user._id);
+  const historyService = services.getHistoryService(req.user._id);
   historyService.getHistory(req.query, ajaxUtil.getResponseFn(res));
 });
 
@@ -63,12 +63,12 @@ router.get('/mediainfo', (req, res, next) => {
 });
 
 router.get('/notifications', (req, res, next) => {
-  const notificationService = ServicesHandler.getNotificationService(req.user._id);
+  const notificationService = services.getNotificationService(req.user._id);
   notificationService.getNotifications(req.query, ajaxUtil.getResponseFn(res));
 });
 
 router.delete('/notifications', (req, res, next) => {
-  const notificationService = ServicesHandler.getNotificationService(req.user._id);
+  const notificationService = services.getNotificationService(req.user._id);
   notificationService.clearNotifications(req.query, ajaxUtil.getResponseFn(res));
 });
 

@@ -8,7 +8,7 @@ const passport = require('passport');
 const config = require('../../config');
 const router = express.Router();
 const rTorrentUserData = require('../models/rTorrentUserData');
-const servicesHandler = require('../services/servicesHandler');
+const services = require('../services');
 const Users = require('../models/Users');
 
 const failedLoginResponse = 'Failed login.';
@@ -142,7 +142,7 @@ router.get('/users', (req, res, next) => {
 
 router.delete('/users/:username', (req, res, next) => {
   Users.removeUser(req.params.username, ajaxUtil.getResponseFn(res));
-  servicesHandler.destroyUserServices(req.user._id);
+  services.destroyUserServices(req.user._id);
 });
 
 router.put('/users', (req, res, next) => {

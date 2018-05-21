@@ -6,7 +6,7 @@ const clientRequestServiceEvents = require('../constants/clientRequestServiceEve
 const config = require('../../config');
 const formatUtil = require('../../shared/util/formatUtil');
 const methodCallUtil = require('../util/methodCallUtil');
-const ServicesHandler = require('./servicesHandler');
+const services = require('./');
 const serverEventTypes = require('../../shared/constants/serverEventTypes');
 const torrentListPropMap = require('../constants/torrentListPropMap');
 const torrentServiceEvents = require('../constants/torrentServiceEvents');
@@ -320,7 +320,7 @@ class TorrentService extends EventEmitter {
     );
 
     if (this.hasTorrentFinished(prevTorrentDetails, nextTorrentDetails)) {
-      const notificationService = ServicesHandler.getNotificationService(this.userId);
+      const notificationService = services.getNotificationService(this.userId);
       notificationService.addNotification({
         id: 'notification.torrent.finished',
         data: {name: nextTorrentDetails.name}
