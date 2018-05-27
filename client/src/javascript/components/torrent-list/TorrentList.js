@@ -585,6 +585,8 @@ class TorrentListContainer extends React.Component {
       return null;
     }
 
+    console.log(this.state.torrents.length);
+
     let content = null;
     let torrentListHeading = null;
     const isCondensed = this.state.torrentListViewSize === 'condensed';

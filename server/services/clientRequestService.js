@@ -149,11 +149,7 @@ class ClientRequestService extends EventEmitter {
     return scgi
       .methodCall(user, 'd.multicall2', ['', 'main'].concat(options.methodCalls))
       .then(torrents => this.processTorrentListResponse(user, torrents, options))
-      .then(torrents => {
-        console.log(torrents);
-        return torrents;
-      })
-      .catch(clientError => this.processClientError(clientError));
+      .catch(this.processClientError);
   }
 
   fetchTransferSummary(user, options) {
@@ -224,7 +220,6 @@ class ClientRequestService extends EventEmitter {
 
         this.emit(
           clientRequestServiceEvents.PROCESS_TORRENT,
-          user,
           processedTorrentDetailValues
         );
 

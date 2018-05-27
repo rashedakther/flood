@@ -41,7 +41,7 @@ module.exports = (req, res) => {
   serverEvent.addData(transferSummary.transferSummary);
   serverEvent.emit();
 
-  serverEvent.setID({id: Date.now()});
+  serverEvent.setID(Date.now());
   serverEvent.setType(serverEventTypes.NOTIFICATION_COUNT_CHANGE);
   serverEvent.addData(serviceInstances.notificationService.getNotificationCount());
   serverEvent.emit();
