@@ -185,31 +185,26 @@ class ClientRequest {
   }
 
   checkHash(options) {
-    const torrentService = services.getTorrentService(this.user);
-    torrentService.fetchTorrentList().then(
-      () => {
-        const hashes = this.getEnsuredArray(options.hashes);
-        const stoppedHashes = hashes.filter(hash => {
-          return torrentService.getTorrent(hash).status.includes(torrentStatusMap.stopped);
-        });
+    const hashes = this.getEnsuredArray(options.hashes);
+    const stoppedHashes = hashes.filter(hash => {
+      return torrentService.getTorrent(hash).status.includes(torrentStatusMap.stopped);
+    });
 
-        const hashesToStart = [];
+    const hashesToStart = [];
 
-        this.stopTorrents({hashes});
+    this.stopTorrents({ hashes });
 
-        hashes.forEach(hash => {
-          this.requests.push(this.getMethodCall('d.check_hash', [hash]));
+    hashes.forEach(hash => {
+      this.requests.push(this.getMethodCall('d.check_hash', [hash]));
 
-          if (!stoppedHashes.includes(hash)) {
-            hashesToStart.push(hash);
-          }
-        });
-
-        if (hashesToStart.length) {
-          this.startTorrents({hashes: hashesToStart});
-        }
+      if (!stoppedHashes.includes(hash)) {
+        hashesToStart.push(hash);
       }
-    );
+    });
+
+    if (hashesToStart.length) {
+      this.startTorrents({ hashes: hashesToStart });
+    }
   }
 
   createDirectory(options) {

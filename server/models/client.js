@@ -47,7 +47,7 @@ var client = {
         fileRequest.onComplete((response, error) => {
           torrentService.fetchTorrentList().then(
             () => callback(response, error)
-          ).catch((err) => console.log(err));
+          );
         });
       }
 
@@ -149,7 +149,7 @@ var client = {
             });
           });
         }
-      ).catch((err) => console.log(err));
+      );
     } catch (error) {
       res.status(500).json(error);
     }
@@ -298,7 +298,7 @@ var client = {
         mainRequest.setDownloadPath({hashes, path: destinationPath, isBasePath});
         mainRequest.onComplete(afterSetPath);
         mainRequest.send();      }
-    ).catch((err) => console.log(err));
+    );
   },
 
   setFilePriority (user, hashes, data, callback) {
@@ -312,7 +312,7 @@ var client = {
     request.onComplete((response, error) => {
       torrentService.fetchTorrentList().then(
         () => callback(response, error)
-      ).catch((err) => console.log(err));
+      );
     });
     request.send();
   },
@@ -326,7 +326,7 @@ var client = {
     request.onComplete((response, error) => {
       torrentService.fetchTorrentList().then(
         () => callback(response, error)
-      ).catch((err) => console.log(err));
+      );
     });
     request.send();
   },
@@ -390,7 +390,7 @@ var client = {
       // Fetch the latest torrent list to re-index the taxonomy.
       torrentService.fetchTorrentList().then(
         () => callback(response, error)
-      ).catch((err) => console.log(err));
+      );
     });
     request.send();
   },
@@ -404,7 +404,7 @@ var client = {
     request.onComplete((response, error) => {
       torrentService.fetchTorrentList().then(
         () => callback(response, error)
-      ).catch((err) => console.log(err));
+      );
     });
     request.send();
   },
@@ -418,7 +418,7 @@ var client = {
     request.onComplete((response, error) => {
       torrentService.fetchTorrentList().then(
         () => callback(response, error)
-      ).catch();
+      );
     });
     request.send();
   }
