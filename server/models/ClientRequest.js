@@ -15,10 +15,10 @@ const services = require('../services');
 const torrentStatusMap = require('../../shared/constants/torrentStatusMap');
 
 class ClientRequest {
-  constructor(userId, options) {
+  constructor(user, options) {
     options = options || {};
 
-    this.userId = userId;
+    this.user = user;
 
     this.onCompleteFn = null;
     this.postProcessFn = null;
@@ -110,7 +110,7 @@ class ClientRequest {
     let handleSuccess = this.handleSuccess.bind(this);
     let handleError = this.handleError.bind(this);
 
-    scgi.methodCall(this.userId, 'system.multicall', [this.requests])
+    scgi.methodCall(this.user, 'system.multicall', [this.requests])
       .then(handleSuccess)
       .catch(handleError);
   }
@@ -184,8 +184,8 @@ class ClientRequest {
     });
   }
 
-  checkHash(userId, options) {
-    const torrentService = services.getTorrentService(userId);
+  checkHash(options) {
+    const torrentService = services.getTorrentService(this.user);
     torrentService.fetchTorrentList().then(
       () => {
         const hashes = this.getEnsuredArray(options.hashes);
@@ -209,7 +209,7 @@ class ClientRequest {
           this.startTorrents({hashes: hashesToStart});
         }
       }
-    ).catch((err) => console.log(err));
+    );
   }
 
   createDirectory(options) {

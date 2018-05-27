@@ -5,8 +5,8 @@ let child_process = require('child_process');
 const services = require('../services');
 
 module.exports = {
-  getMediainfo(userId, options, callback) {
-    const torrentService = services.getTorrentService(userId);
+  getMediainfo(user, options, callback) {
+    const torrentService = services.getTorrentService(user);
     torrentService.fetchTorrentList().then(
       () => {
         let hash = options.hash;
@@ -36,6 +36,6 @@ module.exports = {
           callback(null, {error: childProcessError});
         }
       }
-    ).catch();
+    );
   }
 };

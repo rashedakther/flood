@@ -32,10 +32,12 @@ const processData = (opts, callback, data, error) => {
 };
 
 class HistoryService extends EventEmitter {
-  constructor(userId, ...args) {
+  constructor(user, ...args) {
     super(...args);
 
-    this.userId = userId;
+    if (!user || !user._id) throw new Error(`Missing user ID in HistoryService`);
+
+    this.user = user;
     this.errorCount = 0;
     this.lastSnapshots = {};
     this.pollTimeout = null;
@@ -45,13 +47,13 @@ class HistoryService extends EventEmitter {
     this.handleFetchTransferSummaryError = this.handleFetchTransferSummaryError.bind(this);
     this.handleFetchTransferSummarySuccess = this.handleFetchTransferSummarySuccess.bind(this);
 
-    this.yearSnapshot = new HistoryEra(this.userId, {
+    this.yearSnapshot = new HistoryEra(this.user, {
       interval: 1000 * 60 * 60 * 24 * 7, // 7 days
       maxTime: 0, // infinite
       name: 'yearSnapshot'
     });
 
-    this.monthSnapshot = new HistoryEra(this.userId, {
+    this.monthSnapshot = new HistoryEra(this.user, {
       interval: 1000 * 60 * 60 * 12, // 12 hours
       maxTime: 1000 * 60 * 60 * 24 * 365, // 365 days
       name: 'monthSnapshot',
@@ -59,7 +61,7 @@ class HistoryService extends EventEmitter {
       nextEra: this.yearSnapshot
     });
 
-    this.weekSnapshot = new HistoryEra(this.userId, {
+    this.weekSnapshot = new HistoryEra(this.user, {
       interval: 1000 * 60 * 60 * 4, // 4 hours
       maxTime: 1000 * 60 * 60 * 24 * 7 * 24, // 24 weeks
       name: 'weekSnapshot',
@@ -67,7 +69,7 @@ class HistoryService extends EventEmitter {
       nextEra: this.monthSnapshot
     });
 
-    this.daySnapshot = new HistoryEra(this.userId, {
+    this.daySnapshot = new HistoryEra(this.user, {
       interval: 1000 * 60 * 60, // 60 minutes
       maxTime: 1000 * 60 * 60 * 24 * 30, // 30 days
       name: 'daySnapshot',
@@ -75,7 +77,7 @@ class HistoryService extends EventEmitter {
       nextEra: this.weekSnapshot
     });
 
-    this.hourSnapshot = new HistoryEra(this.userId, {
+    this.hourSnapshot = new HistoryEra(this.user, {
       interval: 1000 * 60 * 15, // 15 minutes
       maxTime: 1000 * 60 * 60 * 24, // 24 hours
       name: 'hourSnapshot',
@@ -83,7 +85,7 @@ class HistoryService extends EventEmitter {
       nextEra: this.daySnapshot
     });
 
-    this.thirtyMinSnapshot = new HistoryEra(this.userId, {
+    this.thirtyMinSnapshot = new HistoryEra(this.user, {
       interval: 1000 * 20, // 20 seconds
       maxTime: 1000 * 60 * 30, // 30 minutes
       name: 'thirtyMinSnapshot',
@@ -91,7 +93,7 @@ class HistoryService extends EventEmitter {
       nextEra: this.hourSnapshot
     });
 
-    this.fiveMinSnapshot = new HistoryEra(this.userId, {
+    this.fiveMinSnapshot = new HistoryEra(this.user, {
       interval: 1000 * 5, // 5 seconds
       maxTime: 1000 * 60 * 5, // 5 minutes
       name: 'fiveMinSnapshot',
@@ -146,7 +148,7 @@ class HistoryService extends EventEmitter {
     }
 
     clientRequestService
-      .fetchTransferSummary(this.userId, transferSummaryMethodCallConfig)
+      .fetchTransferSummary(this.user, transferSummaryMethodCallConfig)
       .then(this.handleFetchTransferSummarySuccess.bind(this))
       .catch(this.handleFetchTransferSummaryError.bind(this));
   }
@@ -197,7 +199,6 @@ class HistoryService extends EventEmitter {
     this.errorCount = 0;
     this.transferSummary = nextTransferSummary;
     this.fiveMinSnapshot.addData({
-      userId: this.userId,
       upload: nextTransferSummary.upRate,
       download: nextTransferSummary.downRate
     });

@@ -1,13 +1,9 @@
-'use strict';
-
 const Deserializer = require('xmlrpc/lib/deserializer');
 const net = require('net');
 const Serializer = require('xmlrpc/lib/serializer');
 
 const nullChar = String.fromCharCode(0);
 
-let Users = require('../models/Users');
-let rTorrentUserData = require('../models/rTorrentUserData');
 let isRequestPending = false;
 let lastResponseTimestamp = 0;
 const pendingRequests = [];
@@ -18,46 +14,21 @@ const sendDefferedMethodCall = () => {
 
     const nextRequest = pendingRequests.shift();
 
-    proxyByUserMethodCall(nextRequest.userId, nextRequest.methodName, nextRequest.parameters)
+    proxyByUserMethodCall(nextRequest.user, nextRequest.methodName, nextRequest.parameters)
       .then(nextRequest.resolve)
       .catch(nextRequest.reject);
   }
 };
 
-const proxyByUserMethodCall = (userId, methodName, parameters) => {
+const proxyByUserMethodCall = (user, methodName, parameters) => {
   return new Promise((resolve, reject) => {
-    const user = rTorrentUserData.getrTorrentData(userId);
-    if (user) {
-      sendMethodCall(user, methodName, parameters, function (response, error) {
-        if (!response || error) {
-          return reject(error);
-        }
+    sendMethodCall(user, methodName, parameters, function (response, error) {
+      if (!response || error) {
+        return reject(error);
+      }
 
-        return resolve(response);
-      });
-    } else {
-      Users.fetchById(userId, function(error, user) {
-        if (error || !user) {
-          return reject(error);
-        }
-
-        rTorrentUserData.addrTorrentData(userId,
-          {
-            socket: user.socket,
-            socketPath: user.socketPath,
-            port: user.port,
-            host: user.host
-          });
-
-        sendMethodCall(user, methodName, parameters, function(response, error) {
-          if (!response || error) {
-            return reject(error);
-          }
-
-          return resolve(response);
-        });
-      });
-    }
+      return resolve(response);
+    });
   });
 };
 
@@ -110,15 +81,15 @@ const sendMethodCall = (user, methodName, parameters, cb) => {
 };
 
 module.exports = {
-  methodCall(userId, methodName, parameters) {
+  methodCall(user, methodName, parameters) {
     // We only allow one request at a time.
     if (isRequestPending) {
       return new Promise((resolve, reject) => {
-        pendingRequests.push({userId, methodName, parameters, resolve, reject});
+        pendingRequests.push({user, methodName, parameters, resolve, reject});
       });
     } else {
       isRequestPending = true;
-      return proxyByUserMethodCall(userId, methodName, parameters);
+      return proxyByUserMethodCall(user, methodName, parameters);
     }
   }
 };

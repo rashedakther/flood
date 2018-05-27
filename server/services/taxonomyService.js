@@ -7,10 +7,12 @@ const taxonomyServiceEvents = require('../constants/taxonomyServiceEvents');
 const torrentStatusMap = require('../../shared/constants/torrentStatusMap');
 
 class TaxonomyService extends EventEmitter {
-  constructor(userId, ...args) {
+  constructor(user, ...args) {
     super(...args);
 
-    this.userId = userId;
+    if (!user || !user._id) throw new Error(`Missing user ID in TaxonomyService`);
+
+    this.user = user;
 
     this.lastStatusCounts = {all: 0};
     this.lastTagCounts = {all: 0};
@@ -68,11 +70,7 @@ class TaxonomyService extends EventEmitter {
     };
   }
 
-  handleProcessTorrentListStart(userId) {
-    if (userId !== this.userId) {
-      return;
-    }
-
+  handleProcessTorrentListStart() {
     this.lastStatusCounts = Object.assign({}, this.statusCounts);
     this.lastTagCounts = Object.assign({}, this.tagCounts);
     this.lastTrackerCounts = Object.assign({}, this.trackerCounts);
@@ -86,11 +84,7 @@ class TaxonomyService extends EventEmitter {
     this.trackerCounts = {all: 0};
   }
 
-  handleProcessTorrentListEnd(userId, torrentList) {
-    if (userId !== this.userId) {
-      return;
-    }
-
+  handleProcessTorrentListEnd(torrentList) {
     const {length = 0} = torrentList;
 
     this.statusCounts.all = length;
@@ -127,11 +121,7 @@ class TaxonomyService extends EventEmitter {
     }
   }
 
-  handleProcessTorrent(userId, torrentDetails) {
-    if (userId !== this.userId) {
-      return;
-    }
-
+  handleProcessTorrent(torrentDetails) {
     this.incrementStatusCounts(torrentDetails.status);
     this.incrementTagCounts(torrentDetails.tags);
     this.incrementTrackerCounts(torrentDetails.trackerURIs);
