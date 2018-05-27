@@ -10,11 +10,12 @@ const DEFAULT_QUERY_LIMIT = 20;
 const INITIAL_COUNT_VALUE = {read: 0, total: 0, unread: 0};
 
 class NotificationService extends EventEmitter {
-  constructor(user, ...args) {
+  constructor(user, services, ...args) {
     super(...args);
 
     if (!user || !user._id) throw new Error(`Missing user ID in NotificationService`);
 
+    this.services = services;
     this.user = user;
     this.count = Object.assign({}, INITIAL_COUNT_VALUE);
     this.ready = false;

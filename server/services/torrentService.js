@@ -1,12 +1,10 @@
 const deepEqual = require('deep-equal');
 const EventEmitter = require('events');
 
-const clientRequestService = require('./clientRequestService');
 const clientRequestServiceEvents = require('../constants/clientRequestServiceEvents');
 const config = require('../../config');
 const formatUtil = require('../../shared/util/formatUtil');
 const methodCallUtil = require('../util/methodCallUtil');
-const services = require('./');
 const serverEventTypes = require('../../shared/constants/serverEventTypes');
 const torrentListPropMap = require('../constants/torrentListPropMap');
 const torrentServiceEvents = require('../constants/torrentServiceEvents');
@@ -16,11 +14,12 @@ const torrentListMethodCallConfig = methodCallUtil
   .getMethodCallConfigFromPropMap(torrentListPropMap);
 
 class TorrentService extends EventEmitter {
-  constructor(user, ...args) {
+  constructor(user, services, ...args) {
     super(...args);
 
     if (!user || !user._id) throw new Error(`Missing user ID in TorrentService`);
 
+    this.services = services;
     this.user = user;
 
     this.errorCount = 0;
@@ -30,6 +29,10 @@ class TorrentService extends EventEmitter {
     this.fetchTorrentList = this.fetchTorrentList.bind(this);
     this.handleTorrentProcessed = this.handleTorrentProcessed.bind(this);
     this.handleTorrentsRemoved = this.handleTorrentsRemoved.bind(this);
+
+    console.log(this.services);
+
+    const clientRequestService = this.services.clientRequestService;
 
     clientRequestService.addTorrentListReducer({
       key: 'status',
@@ -113,8 +116,8 @@ class TorrentService extends EventEmitter {
       clearTimeout(this.pollTimeout);
     }
 
-    return clientRequestService
-      .fetchTorrentList(this.user, torrentListMethodCallConfig)
+    return this.services.clientRequestService
+      .fetchTorrentList(torrentListMethodCallConfig)
       .then(this.handleFetchTorrentListSuccess.bind(this))
       .catch(this.handleFetchTorrentListError.bind(this));
   }
@@ -309,7 +312,7 @@ class TorrentService extends EventEmitter {
     );
 
     if (this.hasTorrentFinished(prevTorrentDetails, nextTorrentDetails)) {
-      services.getNotificationService(this.user).addNotification({
+      this.services.notificationService.addNotification({
         id: 'notification.torrent.finished',
         data: {name: nextTorrentDetails.name}
       });

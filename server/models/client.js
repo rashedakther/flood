@@ -45,9 +45,8 @@ var client = {
       // Set the callback for only the last request.
       if (index === files.length - 1) {
         fileRequest.onComplete((response, error) => {
-          torrentService.fetchTorrentList().then(
-            () => callback(response, error)
-          );
+          torrentService.fetchTorrentList();
+          callback(response, error);
         });
       }
 
@@ -80,9 +79,8 @@ var client = {
 
     request.checkHash({hashes});
     request.onComplete((response, error) => {
-      torrentService.fetchTorrentList().then(
-        () => callback(response, error)
-      );
+      torrentService.fetchTorrentList();
+      callback(response, error);
     });
     request.send();
   },
@@ -90,66 +88,62 @@ var client = {
   downloadFiles (user, hash, fileString, res) {
     try {
       const torrentService = services.getTorrentService(user);
-      torrentService.fetchTorrentList().then(
-        () => {
-          const selectedTorrent = torrentService.getTorrent(hash);
-          if (!selectedTorrent) return res.status(404).json({error: 'Torrent not found.'});
+      const selectedTorrent = torrentService.getTorrent(hash);
+      if (!selectedTorrent) return res.status(404).json({error: 'Torrent not found.'});
 
-          this.getTorrentDetails(user, hash, (torrentDetails) => {
-            if (!torrentDetails) return res.status(404).json({error: 'Torrent details not found'});
+      this.getTorrentDetails(user, hash, (torrentDetails) => {
+        if (!torrentDetails) return res.status(404).json({error: 'Torrent details not found'});
 
-            let files;
-            if (!fileString) {
-              files = torrentDetails.fileTree.files.map((x, i) => `${i}`);
-            } else {
-              files = fileString.split(',');
-            }
-
-            const filePathsToDownload = this.findFilesByIndicies(
-              files,
-              torrentDetails.fileTree
-            ).map((file) => {
-              return path.join(selectedTorrent.directory, file.path);
-            });
-
-            if (filePathsToDownload.length === 1) {
-              const file = filePathsToDownload[0];
-              if (!fs.existsSync(file)) return res.status(404).json({error: 'File not found.'});
-
-              res.attachment(path.basename(file));
-              return res.download(file);
-            }
-
-            res.attachment(`${selectedTorrent.name}.tar`);
-
-            const pack = tar.pack()
-            pack.pipe(res);
-
-            let tasks = filePathsToDownload.map((filePath) => {
-              const filename = path.basename(filePath);
-
-              return (next) => {
-                fs.stat(filePath, (err, stats) => {
-                  if (err) return next(err);
-
-                  let stream = fs.createReadStream(filePath);
-                  let entry = pack.entry({
-                    name: filename,
-                    size: stats.size
-                  }, next);
-                  stream.pipe(entry);
-                });
-              }
-            });
-
-            series(tasks, (error) => {
-              if (error) return res.status(500).json(error);
-
-              pack.finalize();
-            });
-          });
+        let files;
+        if (!fileString) {
+          files = torrentDetails.fileTree.files.map((x, i) => `${i}`);
+        } else {
+          files = fileString.split(',');
         }
-      );
+
+        const filePathsToDownload = this.findFilesByIndicies(
+          files,
+          torrentDetails.fileTree
+        ).map((file) => {
+          return path.join(selectedTorrent.directory, file.path);
+        });
+
+        if (filePathsToDownload.length === 1) {
+          const file = filePathsToDownload[0];
+          if (!fs.existsSync(file)) return res.status(404).json({error: 'File not found.'});
+
+          res.attachment(path.basename(file));
+          return res.download(file);
+        }
+
+        res.attachment(`${selectedTorrent.name}.tar`);
+
+        const pack = tar.pack()
+        pack.pipe(res);
+
+        let tasks = filePathsToDownload.map((filePath) => {
+          const filename = path.basename(filePath);
+
+          return (next) => {
+            fs.stat(filePath, (err, stats) => {
+              if (err) return next(err);
+
+              let stream = fs.createReadStream(filePath);
+              let entry = pack.entry({
+                name: filename,
+                size: stats.size
+              }, next);
+              stream.pipe(entry);
+            });
+          }
+        });
+
+        series(tasks, (error) => {
+          if (error) return res.status(500).json(error);
+
+          pack.finalize();
+        });
+      });
     } catch (error) {
       res.status(500).json(error);
     }
@@ -254,51 +248,48 @@ var client = {
     let mainRequest = new ClientRequest(user);
 
     const torrentService = services.getTorrentService(user);
-    torrentService.fetchTorrentList().then(
-      () => {
-        const hashesToRestart = hashes.filter((hash) => {
-          return !torrentService.getTorrent(hash).status.includes(torrentStatusMap.stopped);
-        });
+    const hashesToRestart = hashes.filter((hash) => {
+      return !torrentService.getTorrent(hash).status.includes(torrentStatusMap.stopped);
+    });
 
-        let afterCheckHash;
+    let afterCheckHash;
 
-        if (hashesToRestart.length) {
-          afterCheckHash = () => {
-            const startTorrentsRequest = new ClientRequest(user);
-            startTorrentsRequest.startTorrents({hashes: hashesToRestart});
-            startTorrentsRequest.onComplete(callback);
-            startTorrentsRequest.send();
-          };
-        } else {
-          afterCheckHash = callback;
-        }
+    if (hashesToRestart.length) {
+      afterCheckHash = () => {
+        const startTorrentsRequest = new ClientRequest(user);
+        startTorrentsRequest.startTorrents({hashes: hashesToRestart});
+        startTorrentsRequest.onComplete(callback);
+        startTorrentsRequest.send();
+      };
+    } else {
+      afterCheckHash = callback;
+    }
 
-        const checkHash = () => {
-          const checkHashRequest = new ClientRequest(user);
-          checkHashRequest.checkHash(user, {hashes});
-          checkHashRequest.onComplete(afterCheckHash);
-          checkHashRequest.send();
-        };
+    const checkHash = () => {
+      const checkHashRequest = new ClientRequest(user);
+      checkHashRequest.checkHash(user, {hashes});
+      checkHashRequest.onComplete(afterCheckHash);
+      checkHashRequest.send();
+    };
 
-        const moveTorrents = () => {
-          const moveTorrentsRequest = new ClientRequest(user);
-          moveTorrentsRequest.onComplete(checkHash);
-          moveTorrentsRequest.moveTorrents({
-            filenames, sourcePaths, destinationPath
-          });
-        };
+    const moveTorrents = () => {
+      const moveTorrentsRequest = new ClientRequest(user);
+      moveTorrentsRequest.onComplete(checkHash);
+      moveTorrentsRequest.moveTorrents({
+        filenames, sourcePaths, destinationPath
+      });
+    };
 
-        let afterSetPath = checkHash;
+    let afterSetPath = checkHash;
 
-        if (moveFiles) {
-          afterSetPath = moveTorrents;
-        }
+    if (moveFiles) {
+      afterSetPath = moveTorrents;
+    }
 
-        mainRequest.stopTorrents({hashes});
-        mainRequest.setDownloadPath({hashes, path: destinationPath, isBasePath});
-        mainRequest.onComplete(afterSetPath);
-        mainRequest.send();      }
-    );
+    mainRequest.stopTorrents({hashes});
+    mainRequest.setDownloadPath({hashes, path: destinationPath, isBasePath});
+    mainRequest.onComplete(afterSetPath);
+    mainRequest.send();
   },
 
   setFilePriority (user, hashes, data, callback) {
@@ -310,9 +301,8 @@ var client = {
 
     request.setFilePriority({hashes, fileIndices, priority: data.priority});
     request.onComplete((response, error) => {
-      torrentService.fetchTorrentList().then(
-        () => callback(response, error)
-      );
+      torrentService.fetchTorrentList();
+      callback(response, error);
     });
     request.send();
   },
@@ -324,9 +314,8 @@ var client = {
 
     request.setPriority({hashes, priority: data.priority});
     request.onComplete((response, error) => {
-      torrentService.fetchTorrentList().then(
-        () => callback(response, error)
-      );
+      torrentService.fetchTorrentList();
+      callback(response, error);
     });
     request.send();
   },
@@ -388,9 +377,8 @@ var client = {
     request.setTaxonomy(data);
     request.onComplete((response, error) => {
       // Fetch the latest torrent list to re-index the taxonomy.
-      torrentService.fetchTorrentList().then(
-        () => callback(response, error)
-      );
+      torrentService.fetchTorrentList();
+      callback(response, error);
     });
     request.send();
   },
@@ -402,9 +390,8 @@ var client = {
 
     request.stopTorrents({hashes});
     request.onComplete((response, error) => {
-      torrentService.fetchTorrentList().then(
-        () => callback(response, error)
-      );
+      torrentService.fetchTorrentList();
+      callback(response, error);
     });
     request.send();
   },
@@ -416,9 +403,8 @@ var client = {
 
     request.startTorrents({hashes});
     request.onComplete((response, error) => {
-      torrentService.fetchTorrentList().then(
-        () => callback(response, error)
-      );
+      torrentService.fetchTorrentList();
+      callback(response, error);
     });
     request.send();
   }

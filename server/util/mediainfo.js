@@ -34,5 +34,4 @@ module.exports = {
       callback(null, { error: childProcessError });
     }
   }
-  }
 };

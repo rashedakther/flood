@@ -185,6 +185,7 @@ class ClientRequest {
   }
 
   checkHash(options) {
+    const torrentService = services.getTorrentService(this.user);
     const hashes = this.getEnsuredArray(options.hashes);
     const stoppedHashes = hashes.filter(hash => {
       return torrentService.getTorrent(hash).status.includes(torrentStatusMap.stopped);

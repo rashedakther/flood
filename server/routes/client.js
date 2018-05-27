@@ -1,4 +1,3 @@
-'use strict';
 const express = require('express');
 const passport = require('passport');
 const multer = require('multer');
@@ -6,7 +5,6 @@ const multer = require('multer');
 const ajaxUtil = require('../util/ajaxUtil');
 const booleanCoerce = require('../middleware/booleanCoerce');
 const client = require('../models/client');
-const clientRequestService = require('../services/clientRequestService');
 const router = express.Router();
 
 const upload = multer({
@@ -74,8 +72,8 @@ router.post('/torrents/delete', function(req, res, next) {
   const {deleteData, hash: hashes} = req.body;
   const callback = ajaxUtil.getResponseFn(res);
 
-  clientRequestService
-    .removeTorrents(req.user, {hashes, deleteData})
+  req.services.clientRequestService
+    .removeTorrents({hashes, deleteData})
     .then(callback)
     .catch((err) => {
       callback(null, err);

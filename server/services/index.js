@@ -1,15 +1,18 @@
+const ClientRequestService = require('./clientRequestService');
 const FeedService = require('./feedService');
 const HistoryService = require('./historyService');
 const NotificationService = require('./notificationService');
 const TaxonomyService = require('./taxonomyService');
 const TorrentService = require('./torrentService');
 
+const clientRequestServices = new Map();
 const feedServices = new Map();
 const historyServices = new Map();
 const notificationServices = new Map();
 const taxonomyServices = new Map();
 const torrentServices = new Map();
 const allServiceMaps = [
+  clientRequestServices,
   feedServices,
   historyServices,
   notificationServices,
@@ -20,11 +23,15 @@ const allServiceMaps = [
 const getService = ({servicesMap, service, user}) => {
   let serviceInstance = servicesMap.get(user._id);
   if (!serviceInstance) {
-    serviceInstance = new service(user);
+    serviceInstance = new service(user, getAllServices(user));
     servicesMap.set(user._id, serviceInstance);
   }
 
   return serviceInstance;
+};
+
+const getClientRequestService = user => {
+  return getService({servicesMap: clientRequestServices, service: ClientRequestService, user});
 };
 
 const getFeedService = user => {
@@ -61,6 +68,10 @@ const destroyUserServices = user => {
 
 const getAllServices = user => {
   return {
+    get clientRequestService() {
+      return getClientRequestService(user);
+    },
+
     get feedService() {
       return getFeedService(user);
     },
@@ -86,6 +97,7 @@ const getAllServices = user => {
 module.exports = {
   destroyUserServices,
   getAllServices,
+  getClientRequestService,
   getHistoryService,
   getNotificationService,
   getTaxonomyService,

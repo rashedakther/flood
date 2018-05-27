@@ -5,12 +5,12 @@ const Datastore = require('nedb');
 const client = require('../models/client');
 const config = require('../../config');
 const Feed = require('../models/Feed');
-const services = require('./');
 
 class FeedService {
-  constructor(user) {
+  constructor(user, services) {
     if (!user || !user._id) throw new Error(`Missing user ID in FeedService`);
 
+    this.services = services;
     this.user = user;
     this.isDBReady = false;
     this.db = this.loadDatabase();
@@ -198,8 +198,7 @@ class FeedService {
             {upsert: true}
           );
 
-          const notificationService = services.getNotificationService(this.user);
-          notificationService.addNotification(itemsToDownload.map(item => {
+          this.services.notificationService.addNotification(itemsToDownload.map(item => {
             return {
               id: 'notification.feed.downloaded.torrent',
               data: {

@@ -1,17 +1,17 @@
 const EventEmitter = require('events');
 
-const clientRequestService = require('./clientRequestService');
 const clientRequestServiceEvents = require('../constants/clientRequestServiceEvents');
 const objectUtil = require('../../shared/util/objectUtil');
 const taxonomyServiceEvents = require('../constants/taxonomyServiceEvents');
 const torrentStatusMap = require('../../shared/constants/torrentStatusMap');
 
 class TaxonomyService extends EventEmitter {
-  constructor(user, ...args) {
+  constructor(user, services, ...args) {
     super(...args);
 
     if (!user || !user._id) throw new Error(`Missing user ID in TaxonomyService`);
 
+    this.services = services;
     this.user = user;
 
     this.lastStatusCounts = {all: 0};
@@ -25,6 +25,8 @@ class TaxonomyService extends EventEmitter {
     this.handleProcessTorrent = this.handleProcessTorrent.bind(this);
     this.handleProcessTorrentListStart = this.handleProcessTorrentListStart.bind(this);
     this.handleProcessTorrentListEnd = this.handleProcessTorrentListEnd.bind(this);
+
+    const clientRequestService = this.services.clientRequestService;
 
     clientRequestService.on(
       clientRequestServiceEvents.PROCESS_TORRENT_LIST_START,
@@ -43,6 +45,8 @@ class TaxonomyService extends EventEmitter {
   }
 
   destroy() {
+    const clientRequestService = this.services.clientRequestService;
+
     clientRequestService.removeListener(
       clientRequestServiceEvents.PROCESS_TORRENT_LIST_START,
       this.handleProcessTorrentListStart

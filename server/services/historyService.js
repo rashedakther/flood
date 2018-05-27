@@ -1,8 +1,5 @@
-'use strict';
-
 const EventEmitter = require('events');
 
-const clientRequestService = require('./clientRequestService');
 const config = require('../../config');
 const HistoryEra = require('../models/HistoryEra');
 const historyServiceEvents = require('../constants/historyServiceEvents');
@@ -32,11 +29,12 @@ const processData = (opts, callback, data, error) => {
 };
 
 class HistoryService extends EventEmitter {
-  constructor(user, ...args) {
+  constructor(user, services, ...args) {
     super(...args);
 
     if (!user || !user._id) throw new Error(`Missing user ID in HistoryService`);
 
+    this.services = services;
     this.user = user;
     this.errorCount = 0;
     this.lastSnapshots = {};
@@ -147,8 +145,8 @@ class HistoryService extends EventEmitter {
       clearTimeout(this.pollTimeout);
     }
 
-    clientRequestService
-      .fetchTransferSummary(this.user, transferSummaryMethodCallConfig)
+    this.services.clientRequestService
+      .fetchTransferSummary(transferSummaryMethodCallConfig)
       .then(this.handleFetchTransferSummarySuccess.bind(this))
       .catch(this.handleFetchTransferSummaryError.bind(this));
   }
