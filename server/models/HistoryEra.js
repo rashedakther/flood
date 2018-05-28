@@ -49,7 +49,7 @@ class HistoryEra {
   loadDatabase(dbName) {
     const db = new Datastore({
       autoload: true,
-      filename: path.join(config.dbPath, this.user._id, 'history', dbName, '.db')
+      filename: path.join(config.dbPath, this.user._id, 'history', `${dbName}.db`)
     });
 
     this.ready = true;

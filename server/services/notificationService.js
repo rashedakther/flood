@@ -124,7 +124,7 @@ class NotificationService extends EventEmitter {
 
     const db = new Datastore({
       autoload: true,
-      filename: path.join(config.dbPath, this.user._id, 'notifications', '.db')
+      filename: path.join(config.dbPath, this.user._id, 'notifications.db')
     });
 
     this.ready = true;

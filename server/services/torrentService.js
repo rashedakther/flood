@@ -58,6 +58,8 @@ class TorrentService extends EventEmitter {
       clientRequestServiceEvents.TORRENTS_REMOVED,
       this.handleTorrentsRemoved
     );
+
+    this.fetchTorrentList();
   }
 
   assignDeletedTorrentsToDiff(diff, nextTorrentListSummary, options = {}) {
