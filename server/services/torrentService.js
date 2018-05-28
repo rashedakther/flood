@@ -30,8 +30,6 @@ class TorrentService extends EventEmitter {
     this.handleTorrentProcessed = this.handleTorrentProcessed.bind(this);
     this.handleTorrentsRemoved = this.handleTorrentsRemoved.bind(this);
 
-    console.log(this.services);
-
     const clientRequestService = this.services.clientRequestService;
 
     clientRequestService.addTorrentListReducer({
