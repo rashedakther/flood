@@ -12,16 +12,15 @@ const settings = require('./settings');
 const torrentFilePropsMap = require('../../shared/constants/torrentFilePropsMap');
 const torrentPeerPropsMap = require('../../shared/constants/torrentPeerPropsMap');
 const torrentStatusMap = require('../../shared/constants/torrentStatusMap');
-const services = require('../services');
 const torrentTrackerPropsMap = require('../../shared/constants/torrentTrackerPropsMap');
 
-var client = {
-  addFiles (user, req, callback) {
-    let files = req.files;
-    let path = req.body.destination;
-    let isBasePath = req.body.isBasePath;
-    let request = new ClientRequest(user);
-    let start = req.body.start;
+const client = {
+  addFiles(user, services, req, callback) {
+    const files = req.files;
+    const path = req.body.destination;
+    const isBasePath = req.body.isBasePath;
+    const request = new ClientRequest(user, services);
+    const start = req.body.start;
     let tags = req.body.tags;
 
     if (!Array.isArray(tags)) {
@@ -31,21 +30,19 @@ var client = {
     request.createDirectory({path});
     request.send();
 
-    const torrentService = services.getTorrentService(user);
-
     // Each torrent is sent individually because rTorrent accepts a total
     // filesize of 524 kilobytes or less. This allows the user to send many
     // torrent files reliably.
     files.forEach((file, index) => {
       file.originalname = encodeURIComponent(file.originalname);
 
-      let fileRequest = new ClientRequest(user);
+      const fileRequest = new ClientRequest(user, services);
       fileRequest.addFiles({files: file, path, isBasePath, start, tags});
 
       // Set the callback for only the last request.
       if (index === files.length - 1) {
         fileRequest.onComplete((response, error) => {
-          torrentService.fetchTorrentList();
+          services.torrentService.fetchTorrentList();
           callback(response, error);
         });
       }
@@ -56,13 +53,13 @@ var client = {
     settings.set(user, {id: 'startTorrentsOnLoad', data: start});
   },
 
-  addUrls (user, data, callback) {
-    let urls = data.urls;
-    let path = data.destination;
-    let isBasePath = data.isBasePath;
-    let start = data.start;
-    let tags = data.tags;
-    let request = new ClientRequest(user);
+  addUrls (user, services, data, callback) {
+    const urls = data.urls;
+    const path = data.destination;
+    const isBasePath = data.isBasePath;
+    const start = data.start;
+    const tags = data.tags;
+    const request = new ClientRequest(user, services);
 
     request.createDirectory({path});
     request.addURLs({urls, path, isBasePath, start, tags});
@@ -72,23 +69,20 @@ var client = {
     settings.set(user, {id: 'startTorrentsOnLoad', data: start});
   },
 
-  checkHash (user, hashes, callback) {
-    let request = new ClientRequest(user);
-
-    const torrentService = services.getTorrentService(user);
+  checkHash (user, services, hashes, callback) {
+    const request = new ClientRequest(user, services);
 
     request.checkHash({hashes});
     request.onComplete((response, error) => {
-      torrentService.fetchTorrentList();
+      services.torrentService.fetchTorrentList();
       callback(response, error);
     });
     request.send();
   },
 
-  downloadFiles (user, hash, fileString, res) {
+  downloadFiles (user, services, hash, fileString, res) {
     try {
-      const torrentService = services.getTorrentService(user);
-      const selectedTorrent = torrentService.getTorrent(hash);
+      const selectedTorrent = services.torrentService.getTorrent(hash);
       if (!selectedTorrent) return res.status(404).json({error: 'Torrent not found.'});
 
       this.getTorrentDetails(user, hash, (torrentDetails) => {
@@ -121,15 +115,15 @@ var client = {
         const pack = tar.pack()
         pack.pipe(res);
 
-        let tasks = filePathsToDownload.map((filePath) => {
+        const tasks = filePathsToDownload.map((filePath) => {
           const filename = path.basename(filePath);
 
           return (next) => {
             fs.stat(filePath, (err, stats) => {
               if (err) return next(err);
 
-              let stream = fs.createReadStream(filePath);
-              let entry = pack.entry({
+              const stream = fs.createReadStream(filePath);
+              const entry = pack.entry({
                 name: filename,
                 size: stats.size
               }, next);
@@ -170,10 +164,10 @@ var client = {
     return selectedFiles;
   },
 
-  getSettings (user, options, callback) {
+  getSettings (user, services, options, callback) {
     let requestedSettingsKeys = [];
-    let request = new ClientRequest(user);
-    let response = {};
+    const request = new ClientRequest(user, services);
+    const response = {};
 
     let outboundTransformation = {
       throttleGlobalDownMax: (apiResponse) => {
@@ -216,8 +210,8 @@ var client = {
     request.send();
   },
 
-  getTorrentDetails (user, hash, callback) {
-    let request = new ClientRequest(user);
+  getTorrentDetails (user, services, hash, callback) {
+    const request = new ClientRequest(user, services);
 
     request.getTorrentDetails({
       hash,
@@ -230,33 +224,32 @@ var client = {
     request.send();
   },
 
-  listMethods (user, method, args, callback) {
-    let request = new ClientRequest(user);
+  listMethods (user, services, method, args, callback) {
+    const request = new ClientRequest(user, services);
 
     request.listMethods({method, args});
     request.onComplete(callback);
     request.send();
   },
 
-  moveTorrents (user, data, callback) {
-    let destinationPath = data.destination;
-    let isBasePath = data.isBasePath;
-    let hashes = data.hashes;
-    let filenames = data.filenames;
-    let moveFiles = data.moveFiles;
-    let sourcePaths = data.sources;
-    let mainRequest = new ClientRequest(user);
+  moveTorrents (user, services, data, callback) {
+    const destinationPath = data.destination;
+    const isBasePath = data.isBasePath;
+    const hashes = data.hashes;
+    const filenames = data.filenames;
+    const moveFiles = data.moveFiles;
+    const sourcePaths = data.sources;
+    const mainRequest = new ClientRequest(user, services);
 
-    const torrentService = services.getTorrentService(user);
     const hashesToRestart = hashes.filter((hash) => {
-      return !torrentService.getTorrent(hash).status.includes(torrentStatusMap.stopped);
+      return !services.torrentService.getTorrent(hash).status.includes(torrentStatusMap.stopped);
     });
 
     let afterCheckHash;
 
     if (hashesToRestart.length) {
       afterCheckHash = () => {
-        const startTorrentsRequest = new ClientRequest(user);
+        const startTorrentsRequest = new ClientRequest(user, services);
         startTorrentsRequest.startTorrents({hashes: hashesToRestart});
         startTorrentsRequest.onComplete(callback);
         startTorrentsRequest.send();
@@ -266,14 +259,14 @@ var client = {
     }
 
     const checkHash = () => {
-      const checkHashRequest = new ClientRequest(user);
+      const checkHashRequest = new ClientRequest(user, services);
       checkHashRequest.checkHash(user, {hashes});
       checkHashRequest.onComplete(afterCheckHash);
       checkHashRequest.send();
     };
 
     const moveTorrents = () => {
-      const moveTorrentsRequest = new ClientRequest(user);
+      const moveTorrentsRequest = new ClientRequest(user, services);
       moveTorrentsRequest.onComplete(checkHash);
       moveTorrentsRequest.moveTorrents({
         filenames, sourcePaths, destinationPath
@@ -292,36 +285,32 @@ var client = {
     mainRequest.send();
   },
 
-  setFilePriority (user, hashes, data, callback) {
+  setFilePriority (user, services, hashes, data, callback) {
     // TODO Add support for multiple hashes.
     let fileIndices = data.fileIndices;
-    let request = new ClientRequest(user);
-
-    const torrentService = services.getTorrentService(user);
+    const request = new ClientRequest(user, services);
 
     request.setFilePriority({hashes, fileIndices, priority: data.priority});
     request.onComplete((response, error) => {
-      torrentService.fetchTorrentList();
+      services.torrentService.fetchTorrentList();
       callback(response, error);
     });
     request.send();
   },
 
-  setPriority (user, hashes, data, callback) {
-    let request = new ClientRequest(user);
-
-    const torrentService = services.getTorrentService(user);
+  setPriority (user, services, hashes, data, callback) {
+    const request = new ClientRequest(user, services);
 
     request.setPriority({hashes, priority: data.priority});
     request.onComplete((response, error) => {
-      torrentService.fetchTorrentList();
+      services.torrentService.fetchTorrentList();
       callback(response, error);
     });
     request.send();
   },
 
-  setSettings (user, payloads, callback) {
-    let request = new ClientRequest(user);
+  setSettings (user, services, payloads, callback) {
+    const request = new ClientRequest(user, services);
     if (payloads.length === 0) return callback({});
 
     let inboundTransformation = {
@@ -358,8 +347,8 @@ var client = {
     request.send();
   },
 
-  setSpeedLimits (user, data, callback) {
-    let request = new ClientRequest(user);
+  setSpeedLimits (user, services, data, callback) {
+    const request = new ClientRequest(user, services);
 
     request.setThrottle({
       direction: data.direction,
@@ -369,41 +358,34 @@ var client = {
     request.send();
   },
 
-  setTaxonomy (user, data, callback) {
-    let request = new ClientRequest(user);
-
-    const torrentService = services.getTorrentService(user);
+  setTaxonomy (user, services, data, callback) {
+    const request = new ClientRequest(user, services);
 
     request.setTaxonomy(data);
     request.onComplete((response, error) => {
       // Fetch the latest torrent list to re-index the taxonomy.
-      torrentService.fetchTorrentList();
+      services.torrentService.fetchTorrentList();
       callback(response, error);
     });
     request.send();
   },
 
-  stopTorrent (user, hashes, callback) {
-    let request = new ClientRequest(user);
-
-    const torrentService = services.getTorrentService(user);
-
+  stopTorrent (user, services, hashes, callback) {
+    const request = new ClientRequest(user, services);
     request.stopTorrents({hashes});
     request.onComplete((response, error) => {
-      torrentService.fetchTorrentList();
+      services.torrentService.fetchTorrentList();
       callback(response, error);
     });
     request.send();
   },
 
-  startTorrent (user, hashes, callback) {
-    let request = new ClientRequest(user);
-
-    const torrentService = services.getTorrentService(user);
+  startTorrent (user, services, hashes, callback) {
+    const request = new ClientRequest(user, services);
 
     request.startTorrents({hashes});
     request.onComplete((response, error) => {
-      torrentService.fetchTorrentList();
+      services.torrentService.fetchTorrentList();
       callback(response, error);
     });
     request.send();

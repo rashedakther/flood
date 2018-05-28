@@ -5,7 +5,6 @@ const rimraf = require('rimraf');
 const clientRequestServiceEvents = require('../constants/clientRequestServiceEvents');
 const fileListPropMap = require('../constants/fileListPropMap');
 const methodCallUtil = require('../util/methodCallUtil');
-const scgi = require('../util/scgi');
 
 const fileListMethodCallConfig = methodCallUtil.getMethodCallConfigFromPropMap(
   fileListPropMap,
@@ -79,8 +78,8 @@ class ClientRequestService extends EventEmitter {
       []
     );
 
-    return scgi
-      .methodCall(this.user, 'system.multicall', [methodCalls])
+    return this.services.clientRequestManager
+      .methodCall('system.multicall', [methodCalls])
       .then((response) => {
         if (options.deleteData) {
           const torrentCount = options.hashes.length;
@@ -143,8 +142,8 @@ class ClientRequestService extends EventEmitter {
    *   with the processed client error.
    */
   fetchTorrentList(options) {
-    return scgi
-      .methodCall(this.user, 'd.multicall2', ['', 'main'].concat(options.methodCalls))
+    return this.services.clientRequestManager
+      .methodCall('d.multicall2', ['', 'main'].concat(options.methodCalls))
       .then(torrents => this.processTorrentListResponse(torrents, options))
       .catch(this.processClientError);
   }
@@ -154,8 +153,8 @@ class ClientRequestService extends EventEmitter {
       return {methodName, params: []};
     });
 
-    return scgi
-      .methodCall(this.user, 'system.multicall', [methodCalls])
+    return this.services.clientRequestManager
+      .methodCall('system.multicall', [methodCalls])
       .then(transferRate => {
         return this.processTransferRateResponse(transferRate, options);
       })

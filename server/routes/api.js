@@ -1,5 +1,3 @@
-'use strict';
-
 const express = require('express');
 const passport = require('passport');
 const router = express.Router();
@@ -21,7 +19,7 @@ router.use('/client', clientRoutes);
 router.get('/activity-stream', eventStream, clientActivityStream);
 
 router.get('/download', (req, res, next) => {
-  client.downloadFiles(req.user, req.query.hash, req.query.files, res);
+  client.downloadFiles(req.user, req.services, req.query.hash, req.query.files, res);
 });
 
 router.delete('/feed-monitor/:id', (req, res, next) => {
@@ -29,23 +27,23 @@ router.delete('/feed-monitor/:id', (req, res, next) => {
 });
 
 router.get('/feed-monitor', (req, res, next) => {
-  req.services.feedService.getAll(req.user, req.body.query, ajaxUtil.getResponseFn(res));
+  req.services.feedService.getAll(req.body.query, ajaxUtil.getResponseFn(res));
 });
 
 router.get('/feed-monitor/feeds', (req, res, next) => {
-  req.services.feedService.getFeeds(req.user, req.body.query, ajaxUtil.getResponseFn(res));
+  req.services.feedService.getFeeds(req.body.query, ajaxUtil.getResponseFn(res));
 });
 
 router.put('/feed-monitor/feeds', (req, res, next) => {
-  req.services.feedService.addFeed(req.user, req.body, ajaxUtil.getResponseFn(res));
+  req.services.feedService.addFeed(req.body, ajaxUtil.getResponseFn(res));
 });
 
 router.get('/feed-monitor/rules', (req, res, next) => {
-  req.services.feedService.getRules(req.user, req.body.query, ajaxUtil.getResponseFn(res));
+  req.services.feedService.getRules(req.body.query, ajaxUtil.getResponseFn(res));
 });
 
 router.put('/feed-monitor/rules', (req, res, next) => {
-  req.services.feedService.addRule(req.user, req.body, ajaxUtil.getResponseFn(res));
+  req.services.feedService.addRule(req.body, ajaxUtil.getResponseFn(res));
 });
 
 router.get('/directory-list', (req, res, next) => {
@@ -74,10 +72,6 @@ router.get('/settings', (req, res, next) => {
 
 router.patch('/settings', (req, res, next) => {
   settings.set(req.user, req.body, ajaxUtil.getResponseFn(res));
-});
-
-router.get('/stats', (req, res, next) => {
-  client.getTransferStats(ajaxUtil.getResponseFn(res));
 });
 
 module.exports = router;

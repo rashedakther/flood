@@ -213,6 +213,7 @@ class FeedService {
         itemsToDownload.forEach((item, index) => {
           client.addUrls(
             this.user,
+            this.services,
             {
               urls: item.urls,
               destination: item.destination,
