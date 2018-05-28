@@ -115,8 +115,8 @@ class HistoryService extends EventEmitter {
           const {timestamps = []} = lastSnapshot;
           const nextLastTimestamp = timestamps[timestamps.length - 1];
           const prevLastTimestamp = nextSnapshot.timestamps[
-          nextSnapshot.timestamps.length - 1
-            ];
+            nextSnapshot.timestamps.length - 1
+          ];
 
           if (nextLastTimestamp !== prevLastTimestamp) {
             this.emit(
@@ -137,7 +137,7 @@ class HistoryService extends EventEmitter {
   deferFetchTransferSummary(
     interval = (config.torrentClientPollInterval || 2000)
   ) {
-    this.pollTimeout = setTimeout(this.fetchCurrentTransferSummary.bind(this), interval);
+    this.pollTimeout = setTimeout(this.fetchCurrentTransferSummary, interval);
   }
 
   fetchCurrentTransferSummary() {

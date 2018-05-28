@@ -1,16 +1,14 @@
-'use strict';
-
 /**
  * This file is deprecated in favor of clientRequestService.
  */
-let mkdirp = require('mkdirp');
-let mv = require('mv');
-let path = require('path');
-let util = require('util');
+const mkdirp = require('mkdirp');
+const mv = require('mv');
+const path = require('path');
+const util = require('util');
 
-let clientSettingsMap = require('../../shared/constants/clientSettingsMap');
-let rTorrentPropMap = require('../util/rTorrentPropMap');
-let scgi = require('../util/scgi');
+const clientSettingsMap = require('../../shared/constants/clientSettingsMap');
+const rTorrentPropMap = require('../util/rTorrentPropMap');
+const scgi = require('../util/scgi');
 const services = require('../services');
 const torrentStatusMap = require('../../shared/constants/torrentStatusMap');
 

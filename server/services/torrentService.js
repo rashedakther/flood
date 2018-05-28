@@ -29,6 +29,8 @@ class TorrentService extends EventEmitter {
     this.fetchTorrentList = this.fetchTorrentList.bind(this);
     this.handleTorrentProcessed = this.handleTorrentProcessed.bind(this);
     this.handleTorrentsRemoved = this.handleTorrentsRemoved.bind(this);
+    this.handleFetchTorrentListSuccess = this.handleFetchTorrentListSuccess.bind(this);
+    this.handleFetchTorrentListError = this.handleFetchTorrentListError.bind(this);
 
     const clientRequestService = this.services.clientRequestService;
 
@@ -102,7 +104,7 @@ class TorrentService extends EventEmitter {
   deferFetchTorrentList(
     interval = (config.torrentClientPollInterval || 2000)
   ) {
-    this.pollTimeout = setTimeout(this.fetchTorrentList.bind(this), interval);
+    this.pollTimeout = setTimeout(this.fetchTorrentList, interval);
   }
 
   destroy() {
@@ -116,8 +118,8 @@ class TorrentService extends EventEmitter {
 
     return this.services.clientRequestService
       .fetchTorrentList(torrentListMethodCallConfig)
-      .then(this.handleFetchTorrentListSuccess.bind(this))
-      .catch(this.handleFetchTorrentListError.bind(this));
+      .then(this.handleFetchTorrentListSuccess)
+      .catch(this.handleFetchTorrentListError);
   }
 
   getTorrentETAFromDetails(torrentDetails) {
@@ -262,7 +264,7 @@ class TorrentService extends EventEmitter {
     return diff;
   }
 
-  handleFetchTorrentListError(error) {
+  handleFetchTorrentListError() {
     let nextInterval = config.torrentClientPollInterval || 2000;
 
     // If more than consecutive errors have occurred, then we delay the next
@@ -280,10 +282,6 @@ class TorrentService extends EventEmitter {
   }
 
   getTorrentListSummary() {
-    if (!this.torrentListSummary) {
-      this.torrentListSummary = {torrents: {}};
-    }
-
     return this.torrentListSummary;
   }
 

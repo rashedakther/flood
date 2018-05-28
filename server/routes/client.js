@@ -1,5 +1,4 @@
 const express = require('express');
-const passport = require('passport');
 const multer = require('multer');
 
 const ajaxUtil = require('../util/ajaxUtil');
@@ -12,8 +11,6 @@ const upload = multer({
   limits: {fileSize: 10000000},
   storage: multer.memoryStorage()
 });
-
-router.use('/', passport.authenticate('jwt', {session: false}));
 
 router.post('/add', function(req, res, next) {
   client.addUrls(req.user, req.body, ajaxUtil.getResponseFn(res));
@@ -80,24 +77,8 @@ router.post('/torrents/delete', function(req, res, next) {
     });
 });
 
-router.get('/torrents/taxonomy', function(req, res, next) {
-  client.getTorrentTaxonomy(ajaxUtil.getResponseFn(res));
-});
-
 router.patch('/torrents/taxonomy', function(req, res, next) {
   client.setTaxonomy(req.user, req.body, ajaxUtil.getResponseFn(res));
-});
-
-router.get('/torrents/status-count', function(req, res, next) {
-  client.getTorrentStatusCount(ajaxUtil.getResponseFn(res));
-});
-
-router.get('/torrents/tag-count', function(req, res, next) {
-  client.getTorrentTagCount(ajaxUtil.getResponseFn(res));
-});
-
-router.get('/torrents/tracker-count', function(req, res, next) {
-  client.getTorrentTrackerCount(ajaxUtil.getResponseFn(res));
 });
 
 router.get('/methods.json', function(req, res, next) {

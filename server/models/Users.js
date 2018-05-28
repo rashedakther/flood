@@ -1,7 +1,7 @@
-'use strict';
 const argon2 = require('argon2');
-const fs = require('fs-extra');
 const Datastore = require('nedb');
+const fs = require('fs-extra');
+const path = require('path');
 
 const config = require('../../config');
 
@@ -89,7 +89,7 @@ class Users {
           return callback(null, err);
         }
 
-        fs.removeSync(`${config.dbPath}${user._id}/`);
+        fs.removeSync(path.join(config.dbPath, user._id));
 
         return callback({username});
       });
@@ -109,7 +109,7 @@ class Users {
   loadDatabase() {
     let db = new Datastore({
       autoload: true,
-      filename: `${config.dbPath}users.db`
+      filename: path.join(config.dbPath, 'users.db')
     });
 
     db.ensureIndex({fieldName: 'username', unique: true});
@@ -120,16 +120,6 @@ class Users {
 
   lookupUser(credentials, callback) {
     this.db.findOne({username: credentials.username}, (err, user) => {
-      if (err) {
-        return callback(err);
-      }
-
-      return callback(null, user);
-    });
-  }
-
-  fetchById(userId, callback) {
-    this.db.findOne({_id: userId}, (err, user) => {
       if (err) {
         return callback(err);
       }

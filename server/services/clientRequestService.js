@@ -18,7 +18,7 @@ class ClientRequestService extends EventEmitter {
     this.services = services;
     this.user = user;
 
-    this.torrentListReducers = new Set();
+    this.torrentListReducers = [];
   }
 
   /**
@@ -40,9 +40,7 @@ class ClientRequestService extends EventEmitter {
       throw new Error('reducer.reduce must be a function.');
     }
 
-    if (!this.torrentListReducers.has(reducer)) {
-      this.torrentListReducers.add(reducer);
-    }
+    this.torrentListReducers.push(reducer);
   }
 
   removeTorrents(options = {hashes: [], deleteData: false}) {
