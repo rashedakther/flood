@@ -208,6 +208,7 @@ class FeedService {
               }
             };
           }));
+          this.services.torrentService.fetchTorrentList();
         };
 
         itemsToDownload.forEach((item, index) => {

@@ -134,9 +134,7 @@ class Users {
         return callback(null, err);
       }
 
-      return callback(users.map((user) => {
-        return {username: user.username};
-      }));
+      return callback(users);
     });
   }
 }

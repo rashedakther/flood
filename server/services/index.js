@@ -5,6 +5,7 @@ const HistoryService = require('./historyService');
 const NotificationService = require('./notificationService');
 const TaxonomyService = require('./taxonomyService');
 const TorrentService = require('./torrentService');
+const Users = require('../models/Users');
 
 const clientRequestManagers = new Map();
 const clientRequestServices = new Map();
@@ -61,6 +62,22 @@ const getTorrentService = user => {
   return getService({servicesMap: torrentServices, service: TorrentService, user});
 };
 
+const bootstrapUserServices = () => {
+  Users.listUsers(users => {
+    if (users && users.length) {
+      users.forEach(user => {
+        getClientRequestManager(user);
+        getClientRequestService(user);
+        getFeedService(user);
+        getHistoryService(user);
+        getNotificationService(user);
+        getTaxonomyService(user);
+        getTorrentService(user);
+      });
+    }
+  });
+};
+
 const destroyUserServices = user => {
   allServiceMaps.forEach(serviceMap => {
     const currentService = serviceMap.get(user._id);
@@ -106,6 +123,7 @@ const getAllServices = user => {
 };
 
 module.exports = {
+  bootstrapUserServices,
   destroyUserServices,
   getAllServices,
   getClientRequestManager,

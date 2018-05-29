@@ -162,7 +162,6 @@ class ClientRequestService extends EventEmitter {
   }
 
   processClientError(error) {
-    console.trace(error);
     throw error;
   }
 

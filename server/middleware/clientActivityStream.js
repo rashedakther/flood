@@ -12,8 +12,6 @@ module.exports = (req, res) => {
 
   const serviceInstances = services.getAllServices(user);
 
-  serviceInstances.torrentService.fetchTorrentList();
-
   const serverEvent = new ServerEvent(res);
   const taxonomy = serviceInstances.taxonomyService.getTaxonomy();
   const torrentList = serviceInstances.torrentService.getTorrentList();
