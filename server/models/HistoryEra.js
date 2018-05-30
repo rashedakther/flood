@@ -11,20 +11,17 @@ class HistoryEra {
   constructor(user, opts) {
     opts = opts || {};
 
-    this.user = user;
-    opts = opts || {};
-
-    this.ready = false;
-
     if (!this.hasRequiredFields(opts)) {
       return;
     }
 
     this.data = [];
     this.opts = opts;
+    this.ready = false;
+    this.user = user;
     this.startedAt = Date.now();
-
     this.db = this.loadDatabase(this.opts.name);
+
     this.setLastUpdate(this.db);
     this.removeOutdatedData(this.db);
 
