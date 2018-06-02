@@ -14,10 +14,12 @@ const fileListMethodCallConfig = methodCallUtil.getMethodCallConfigFromPropMap(
 class ClientGatewayService extends EventEmitter {
   constructor(user, services, ...args) {
     super(...args);
+    this.hasError = null;
     this.services = services;
     this.user = user;
 
     this.torrentListReducers = [];
+    this.processClientRequestSuccess = this.processClientRequestSuccess.bind(this);
   }
 
   /**
@@ -144,8 +146,9 @@ class ClientGatewayService extends EventEmitter {
   fetchTorrentList(options) {
     return this.services.clientRequestManager
       .methodCall('d.multicall2', ['', 'main'].concat(options.methodCalls))
+      .then(this.processClientRequestSuccess)
       .then(torrents => this.processTorrentListResponse(torrents, options))
-      .catch(this.processClientError);
+      .catch(this.processClientRequestError);
   }
 
   fetchTransferSummary(options) {
@@ -155,13 +158,27 @@ class ClientGatewayService extends EventEmitter {
 
     return this.services.clientRequestManager
       .methodCall('system.multicall', [methodCalls])
-      .then(transferRate => {
-        return this.processTransferRateResponse(transferRate, options);
-      })
-      .catch(this.processClientError);
+      .then(this.processClientRequestSuccess)
+      .then(transferRate => this.processTransferRateResponse(transferRate, options))
+      .catch(this.processClientRequestError);
   }
 
-  processClientError(error) {
+  processClientRequestSuccess(response) {
+    if (this.hasError == null || this.hasError === true) {
+      this.hasError = false;
+      console.log('emitting success');
+      this.emit(clientGatewayServiceEvents.CLIENT_REQUEST_STATUS_CHANGE);
+    }
+
+    return response;
+  }
+
+  processClientRequestError(error) {
+    if (!this.hasError) {
+      this.hasError = true;
+      console.log('emitting error');
+      this.emit(clientGatewayServiceEvents.CLIENT_REQUEST_ERROR);      
+    }
     throw error;
   }
 
@@ -249,6 +266,10 @@ class ClientGatewayService extends EventEmitter {
       },
       {}
     );
+  }
+
+  testGateway() {
+    return this.services.clientRequestManager.methodCall('system.methodExist', ['system.multicall']);
   }
 }
 

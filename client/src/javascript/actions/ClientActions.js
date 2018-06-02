@@ -62,6 +62,20 @@ let ClientActions = {
           }
         });
       });
+  },
+
+  testConnection: () => {
+    return axios.get(`${baseURI}api/client/connection-test`)
+      .then((json = {}) => json.data)
+      .then((data) => {
+        AppDispatcher.dispatchServerAction({
+          type: ActionTypes.CLIENT_CONNECTION_TEST_SUCCESS
+        });
+      }, (error) => {
+        AppDispatcher.dispatchServerAction({
+          type: ActionTypes.CLIENT_CONNECTION_TEST_ERROR
+        });
+      });
   }
 };
 
