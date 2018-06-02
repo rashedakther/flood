@@ -40,14 +40,6 @@ class FloodApp extends React.Component {
       this[method] = this[method].bind(this);
     });
 
-    UIStore.registerDependency({
-      id: 'flood-settings',
-      message: (
-        <FormattedMessage id="dependency.loading.flood.settings"
-          defaultMessage="Flood Settings" />
-      )
-    });
-
     FloodActions.startActivityStream();
   }
 
@@ -56,6 +48,9 @@ class FloodApp extends React.Component {
       EventTypes.SETTINGS_CHANGE,
       this.handleSettingsChange
     );
+
+    SettingsStore.fetchClientSettings();
+    SettingsStore.fetchFloodSettings();
   }
 
   componentWillUnmount() {
@@ -69,8 +64,6 @@ class FloodApp extends React.Component {
     if (SettingsStore.getFloodSettings('language') !== this.state.language) {
       this.setState({locale: SettingsStore.getFloodSettings('language')});
     }
-
-    UIStore.satisfyDependency('flood-settings');
   }
 
   render() {
