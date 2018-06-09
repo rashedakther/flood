@@ -1,32 +1,22 @@
 import ActionTypes from '../constants/ActionTypes';
 import AppDispatcher from '../dispatcher/AppDispatcher';
 import BaseStore from './BaseStore';
-import ClientActions from '../actions/ClientActions';
 import EventTypes from '../constants/EventTypes';
 
 class ClientStatusStoreClass extends BaseStore {
   constructor() {
     super();
     this.errorCount = 0;
-    this.isConnected = false;
-  }
-
-  initiateConnectionTest() {
-    ClientActions.testConnection(); 
+    this.isConnected = null;
   }
 
   getIsConnected() {
-    return this.isConnected;
+    return this.isConnected === true;
   }
 
-  handleConnectionTestError() {
-    this.isConnected = false;
-    this.emit(EventTypes.CLIENT_CONNECTION_STATUS_CHANGE);
-  }
-
-  handleConnectionTestSuccess() {
-    if (!this.isConnected) {
-      this.isConnected = true;
+  handleConnectivityStatusChange({isConnected}) {
+    if (this.isConnected !== isConnected) {
+      this.isConnected = isConnected;
       this.emit(EventTypes.CLIENT_CONNECTION_STATUS_CHANGE);
     }
   }
@@ -38,17 +28,12 @@ ClientStatusStore.dispatcherID = AppDispatcher.register((payload) => {
   const { action } = payload;
 
   switch (action.type) {
-    case ActionTypes.CLIENT_CONNECTION_TEST_ERROR:
-      ClientStatusStore.handleConnectionTestError();
-      break;
-    case ActionTypes.CLIENT_CONNECTION_TEST_SUCCESS:
-      ClientStatusStore.handleConnectionTestSuccess();
+    case ActionTypes.CLIENT_CONNECTIVITY_STATUS_CHANGE:
+      ClientStatusStore.handleConnectivityStatusChange(action.data);
       break;
     default:
       break;
   }
 });
-
-ClientStatusStore.initiateConnectionTest();
 
 export default ClientStatusStore;

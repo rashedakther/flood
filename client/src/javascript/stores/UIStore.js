@@ -3,8 +3,10 @@ import _ from 'lodash';
 import ActionTypes from '../constants/ActionTypes';
 import AppDispatcher from '../dispatcher/AppDispatcher';
 import BaseStore from './BaseStore';
+import ClientStatusStore from './ClientStatusStore';
 import EventTypes from '../constants/EventTypes';
 import FloodActions from '../actions/FloodActions';
+import UIActions from '../actions/UIActions';
 
 class UIStoreClass extends BaseStore {
   constructor() {
@@ -181,6 +183,10 @@ class UIStoreClass extends BaseStore {
 
     if (!isDependencyLoading) {
       this.emit(EventTypes.UI_DEPENDENCIES_LOADED);
+
+      if (!ClientStatusStore.getIsConnected()) {
+        UIStore.setActiveModal({id: 'client-connectivity'});
+      }
     }
   }
 }

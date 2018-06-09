@@ -19,6 +19,7 @@ class ClientGatewayService extends EventEmitter {
     this.user = user;
 
     this.torrentListReducers = [];
+    this.processClientRequestError = this.processClientRequestError.bind(this);
     this.processClientRequestSuccess = this.processClientRequestSuccess.bind(this);
   }
 
@@ -166,8 +167,7 @@ class ClientGatewayService extends EventEmitter {
   processClientRequestSuccess(response) {
     if (this.hasError == null || this.hasError === true) {
       this.hasError = false;
-      console.log('emitting success');
-      this.emit(clientGatewayServiceEvents.CLIENT_REQUEST_STATUS_CHANGE);
+      this.emit(clientGatewayServiceEvents.CLIENT_CONNECTION_STATE_CHANGE);
     }
 
     return response;
@@ -176,8 +176,7 @@ class ClientGatewayService extends EventEmitter {
   processClientRequestError(error) {
     if (!this.hasError) {
       this.hasError = true;
-      console.log('emitting error');
-      this.emit(clientGatewayServiceEvents.CLIENT_REQUEST_ERROR);      
+      this.emit(clientGatewayServiceEvents.CLIENT_CONNECTION_STATE_CHANGE);
     }
     throw error;
   }
@@ -269,7 +268,9 @@ class ClientGatewayService extends EventEmitter {
   }
 
   testGateway() {
-    return this.services.clientRequestManager.methodCall('system.methodExist', ['system.multicall']);
+    return this.services.clientRequestManager.methodCall('system.methodExist', ['system.multicall'])
+      .then(this.processClientRequestSuccess)
+      .catch(this.processClientRequestError);
   }
 }
 

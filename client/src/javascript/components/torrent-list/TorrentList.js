@@ -595,10 +595,6 @@ class TorrentListContainer extends React.Component {
   }
 
   render() {
-    if (!this.state.isClientConnected) {
-      return <div>Not connected!</div>;
-    }
-
     let content = null;
     let torrentListHeading = null;
     const isCondensed = this.state.torrentListViewSize === 'condensed';
@@ -609,7 +605,15 @@ class TorrentListContainer extends React.Component {
       isListEmpty
     });
 
-    if (isListEmpty) {
+    if (!this.state.isClientConnected) {
+      content = (
+        <div className="torrents__alert__wrapper">
+          <div className="torrents__alert">
+            Cannot connect to rTorrent.
+          </div>
+        </div>
+      );
+    } else if (isListEmpty) {
       content = this.getEmptyTorrentListNotification();
     } else if (this.state.torrentRequestSuccess) {
       content = (

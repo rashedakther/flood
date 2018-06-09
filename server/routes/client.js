@@ -13,11 +13,12 @@ const upload = multer({
 });
 
 router.get('/connection-test', function(req, res, next) {
-  req.services.clientGatewayService.testGateway().then((response) => {
-    res.status(200).send();
-  }).catch(error => {
-    res.status(500).json({isConnected: false});
-  })
+  req.services.clientGatewayService.testGateway()
+    .then((response) => {
+      res.status(200).send();
+    }).catch(error => {
+      res.status(500).json({isConnected: false});
+    });
 });
 
 router.post('/add', function(req, res, next) {
