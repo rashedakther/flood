@@ -4,7 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import * as i18n from './i18n/languages';
-import AuthEnforcer from './components/auth/AuthEnforcer';
+import AppWrapper from './components/AppWrapper';
 import EventTypes from './constants/EventTypes';
 import FloodActions from './actions/FloodActions';
 import Login from './components/views/Login';
@@ -17,7 +17,7 @@ import '../sass/style.scss';
 
 const appRoutes = (
   <Router history={browserHistory}>
-    <Route path="/" component={AuthEnforcer}>
+    <Route path="/" component={AppWrapper}>
       <IndexRoute component={Login} />
       <Route path="login" component={Login} />
       <Route path="register" component={Register} />
@@ -47,7 +47,7 @@ class FloodApp extends React.Component {
     SettingsStore.listen(
       EventTypes.SETTINGS_CHANGE,
       this.handleSettingsChange
-    );
+    ); 
 
     SettingsStore.fetchClientSettings();
     SettingsStore.fetchFloodSettings();
@@ -61,8 +61,9 @@ class FloodApp extends React.Component {
   }
 
   handleSettingsChange() {
-    if (SettingsStore.getFloodSettings('language') !== this.state.language) {
-      this.setState({locale: SettingsStore.getFloodSettings('language')});
+    const nextLocale = SettingsStore.getFloodSettings('language');
+    if (nextLocale !== this.state.language) {
+      this.setState({locale: nextLocale});
     }
   }
 

@@ -183,10 +183,6 @@ class UIStoreClass extends BaseStore {
 
     if (!isDependencyLoading) {
       this.emit(EventTypes.UI_DEPENDENCIES_LOADED);
-
-      if (!ClientStatusStore.getIsConnected()) {
-        UIStore.setActiveModal({id: 'client-connectivity'});
-      }
     }
   }
 }

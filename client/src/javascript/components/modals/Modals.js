@@ -3,7 +3,6 @@ import CSSTransitionGroup from 'react-addons-css-transition-group';
 import React from 'react';
 
 import AddTorrentsModal from './add-torrents-modal/AddTorrentsModal';
-import ClientConnectivityModal from './client-connectivity-modal/ClientConnectivityModal';
 import ConfirmModal from './confirm-modal/ConfirmModal';
 import EventTypes from '../../constants/EventTypes';
 import FeedsModal from './feeds-modal/FeedsModal';
@@ -27,7 +26,6 @@ export default class Modals extends React.Component {
 
     this.modals = {
       'add-torrents': AddTorrentsModal,
-      'client-connectivity': ClientConnectivityModal,
       confirm: ConfirmModal,
       feeds: FeedsModal,
       'move-torrents': MoveTorrentsModal,
