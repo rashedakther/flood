@@ -1,26 +1,50 @@
+import classnames from 'classnames';
 import {
   Button,
   Form,
   FormError,
   FormRow,
+  FormRowItem,
   Panel,
   PanelContent,
   PanelHeader,
-  PanelFooter,
-  Textbox
+  PanelFooter
 } from 'flood-ui-kit';
 import React from 'react';
 
+import Checkmark from '../icons/Checkmark';
 import ClientActions from '../../actions/ClientActions';
 import RtorrentConnectionTypeSelection from './RtorrentConnectionTypeSelection';
 
 export default class ClientConnectionInterruption extends React.Component {
   state = {
+    hasTestedConnection: false,
+    isConnectionVerified: false,
     isTestingConnection: false
   };
 
+  handleFormChange = () => {
+    if (this.state.hasTestedConnection) {
+      this.setState({
+        isConnectionVerified: false,
+        hasTestedConnection: false
+      });
+    }
+  };
+
   handleFormSubmit = ({formData}) => {
-    console.log(formData);
+    this.setState({
+      isSavingSettings: true
+    });
+
+    ClientActions.updateClientConnectionSettings(formData).then(() => {
+      console.log('Successfully updated client settings');
+    }).catch((error) => {
+      console.log(error);
+      this.setState({
+        isSavingSettings: false
+      });
+    });
   }
 
   handleTestButtonClick = () => {
@@ -30,36 +54,68 @@ export default class ClientConnectionInterruption extends React.Component {
     this.setState({
       isTestingConnection: true
     }, () => {
-      // TODO: Implement this method to test the client connection with the provided information.
-      ClientActions.testClientConnection(formData).then(() => {
+      ClientActions.testClientConnectionSettings(formData).then(() => {
         this.setState({
+          hasTestedConnection: true,
+          isConnectionVerified: true,
           isTestingConnection: false
         });
       }).catch(() => {
         this.setState({
+          hasTestedConnection: true,
+          isConnectionVerified: false,
           isTestingConnection: false
         });
       });
     });
   }
 
+  renderConnectionTestResult() {
+    const {hasTestedConnection, isConnectionVerified} = this.state;
+    if (!hasTestedConnection || !isConnectionVerified) return null;
+    return (
+      <FormRowItem className="connection-status">
+        <Checkmark className="connection-status__icon" />
+        <span className="connection-status__copy">Connection successful</span>
+      </FormRowItem>
+    );
+  }
+
+  renderFormError() {
+    const {hasTestedConnection, isConnectionVerified, isTestingConnection} = this.state;
+    if (hasTestedConnection && !isConnectionVerified) {
+      return (
+        <FormRow>
+          <FormError isLoading={isTestingConnection}>
+            Connection could not be verified.
+          </FormError>
+        </FormRow>
+      );
+    }
+  }
+
   render() {
+    const {isConnectionVerified, isTestingConnection} = this.state;
+
     return (
       <Panel spacing="large">
-        <Form onSubmit={this.handleFormSubmit} ref={(ref) => this.formRef = ref}>
+        <Form onChange={this.handleFormChange} onSubmit={this.handleFormSubmit} ref={(ref) => this.formRef = ref}>
           <PanelHeader>
             <h1>Cannot connect to rTorrent</h1>
           </PanelHeader>
           <PanelContent>
-            <RtorrentConnectionTypeSelection />
+            <p className="copy--lead">Flood can't connect to rTorrent. Enter your connection settings to proceed.</p>
+            {this.renderFormError()}
+            <RtorrentConnectionTypeSelection isDisabled={isTestingConnection} />
           </PanelContent>
           <PanelFooter hasBorder>
             <FormRow justify="end">
-              <Button isLoading={this.state.isTestingConnection} priority="tertiary" onClick={this.handleTestButtonClick}>
+              {this.renderConnectionTestResult()}
+              <Button isLoading={isTestingConnection} priority="tertiary" onClick={this.handleTestButtonClick}>
                 Test
               </Button>
-              <Button type="submit">
-                Do the thing
+              <Button type="submit" disabled={!isConnectionVerified}>
+                Save Settings
               </Button>
             </FormRow>
           </PanelFooter>

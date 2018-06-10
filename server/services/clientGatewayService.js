@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 const path = require('path');
 const rimraf = require('rimraf');
 
+const ClientRequestManager = require('./clientRequestManager');
 const clientGatewayServiceEvents = require('../constants/clientGatewayServiceEvents');
 const fileListPropMap = require('../constants/fileListPropMap');
 const methodCallUtil = require('../util/methodCallUtil');
@@ -267,10 +268,25 @@ class ClientGatewayService extends EventEmitter {
     );
   }
 
-  testGateway() {
-    return this.services.clientRequestManager.methodCall('system.methodExist', ['system.multicall'])
-      .then(this.processClientRequestSuccess)
-      .catch(this.processClientRequestError);
+  testGateway(clientSettings) {
+    if (!clientSettings) {
+      console.log('no client settings')
+      return this.services.clientRequestManager.methodCall('system.methodExist', ['system.multicall'])
+        .then(this.processClientRequestSuccess)
+        .catch(this.processClientRequestError);
+    }
+
+    console.log('has client settings');
+    console.log(clientSettings);
+
+    const temporaryRequestManager = new ClientRequestManager({
+      socket: clientSettings.socket,
+      socketPath: clientSettings.socketPath,
+      port: clientSettings.port,
+      host: clientSettings.host
+    });
+
+    return temporaryRequestManager.methodCall('system.methodExist', ['system.multicall']);
   }
 }
 

@@ -15,7 +15,22 @@ const upload = multer({
 router.get('/connection-test', function(req, res, next) {
   req.services.clientGatewayService.testGateway()
     .then((response) => {
-      res.status(200).send();
+      res.status(200).json({isConnected: true});
+    }).catch(error => {
+      res.status(500).json({isConnected: false});
+    });
+});
+
+router.post('/connection-test', function(req, res, next) {
+  const clientSettings = req.body;
+  req.services.clientGatewayService.testGateway({
+      socket: clientSettings.connectionType === 'socket',
+      socketPath: clientSettings.rtorrentSocketPath,
+      port: clientSettings.rtorrentPort,
+      host: clientSettings.rtorrentHost
+    })
+    .then((response) => {
+      res.status(200).json({isConnected: true});
     }).catch(error => {
       res.status(500).json({isConnected: false});
     });

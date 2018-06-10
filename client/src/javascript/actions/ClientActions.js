@@ -64,6 +64,10 @@ let ClientActions = {
       });
   },
 
+  testClientConnectionSettings: (connectionSettings) => {
+    return axios.post(`${baseURI}api/client/connection-test`, connectionSettings).then((json = {}) => json.data);
+  },
+
   testConnection: () => {
     return axios.get(`${baseURI}api/client/connection-test`)
       .then((json = {}) => json.data)
@@ -76,7 +80,11 @@ let ClientActions = {
           type: ActionTypes.CLIENT_CONNECTION_TEST_ERROR
         });
       });
-  }
+  },
+
+  updateClientConnectionSettings: (connectionSettings) => {
+    return axios.post(`${baseURI}api/client/connection-settings`, connectionSettings).then((json = {}) => json.data);
+  },
 };
 
 export default ClientActions;

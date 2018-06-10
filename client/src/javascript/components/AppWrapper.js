@@ -227,9 +227,7 @@ class AuthEnforcer extends React.Component {
 
     // Iterate over current dependencies looking for unsatisified dependencies.
     const isDependencyActive = Object.keys(this.state.dependencies)
-      .some((dependencyKey) => {
-        return !this.state.dependencies[dependencyKey].satisfied;
-      });
+      .some(dependencyKey => !this.state.dependencies[dependencyKey].satisfied);
 
     // If any dependency is unsatisfied, show the loading indicator.
     if (isDependencyActive) {
@@ -242,19 +240,21 @@ class AuthEnforcer extends React.Component {
   }
 
   renderOverlay() {
-    if (!this.state.isClientConnected) {
-      return (
-        <div className="application__loading-overlay">
-          <ClientConnectionInterruption />
-        </div>
-      );
-    }
-
     if (this.isLoading()) {
       return (
         <div className="application__loading-overlay">
           <LoadingIndicator inverse={true} />
           {this.renderDependencyList()}
+        </div>
+      );
+    }
+
+    if (this.state.isAuthenticated && !this.state.isClientConnected) {
+      return (
+        <div className="application__loading-overlay">
+          <div className="application__entry-barrier">
+            <ClientConnectionInterruption />
+          </div>
         </div>
       );
     }
