@@ -25,6 +25,9 @@ COPY server ./server
 RUN apk --no-cache add \
     mediainfo
 
+# Remove build time dependencies.
+RUN apk del build-dependencies
+
 # Hints for consumers of the container.
 EXPOSE 3000
 VOLUME ["/data"]
